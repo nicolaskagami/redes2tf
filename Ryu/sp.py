@@ -100,7 +100,7 @@ class ProjectController(app_manager.RyuApp):
       while(True):
         state = call('sudo bash ../checkPops.sh', shell=True)
         for pop in PoPs:
-            state = call('[ "$(cat .procDir/%s 2>/dev/null)" -lt "10" ] 2>/dev/null' % PoPs[pop]['name'], shell=True)
+            state = call('[ "$(cat .procDir/%s 2>/dev/null)" -lt "100" ] 2>/dev/null' % PoPs[pop]['name'], shell=True)
             if state == 0: 
                 PoPs[pop]['status'] = 'ok'
             else: 
