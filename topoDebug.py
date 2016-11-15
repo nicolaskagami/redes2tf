@@ -48,7 +48,8 @@ def tfTopo():
     h1 = net.addHost('h1', ip='10.0.0.1', mac='00:00:00:00:00:01')
     h2 = net.addHost('h2', ip='10.0.0.2', mac='00:00:00:00:00:02')
 
-    p1 = net.addHost('p1', ip='10.0.1.1', mac='00:00:00:00:01:01', cls=Docker, dimage='gmiotto/click',mem_limit=1024*1024*1024, cpu_shares=1024, cpu_quota=pop_cpu_percentage*100,cpu_period=10000,device_write_bps='/dev/sda:512mb',device_write_iops='/dev/sda:1000')
+    #p1 = net.addHost('p1', ip='10.0.1.1', mac='00:00:00:00:01:01', cls=Docker, dimage='gmiotto/click',mem_limit=1024*1024*1024, cpu_shares=1024, cpu_quota=pop_cpu_percentage*100,cpu_period=10000,device_write_bps='/dev/sda:512mb',device_write_iops='/dev/sda:1000')
+    p1 = net.addHost('p1', ip='10.0.1.1', mac='00:00:00:00:01:01', cls=Docker, dimage='gmiotto/click')
     #p2 = net.addHost('p2', ip='10.0.1.2', mac='00:00:00:00:01:02', cls=Docker, dimage='progrium/stress',mem_limit=1024*1024*10, cpu_quota=pop_cpu_percentage*100,cpu_period=10000)
 
     #Switches
@@ -76,14 +77,10 @@ def tfTopo():
         if "p1" in host.name:
             call("sudo bash Click/runFirewall.sh %s Click/firewall3.click " % host.name,shell=True)
 
-    test_duration = 60
+    test_duration = 30
     interval_duration = 5
     cgroup_options = "--cpu-quota=5000 --cpu-period=10000 --memory='1073741824' --device-write-bps='/dev/sda:512mb' --device-write-iops='/dev/sda:1000' --device-read-bps='/dev/sda:512mb' --device-read-iops='/dev/sda:1000' --memory-swappiness='0' --shm-size='0'"
     h2.cmd('iperf3 -s &')
-
-    time.sleep(5)
-    h1.cmd('sudo bash Measurement/meas.sh 0 0 0 %s >> Results/results.dat & ' % test_duration)
-    time.sleep(test_duration) 
 
     time.sleep(interval_duration)
     print "CPU ATK 1 0 0"
@@ -91,47 +88,7 @@ def tfTopo():
     h1.cmd('sudo bash Measurement/meas.sh 1 0 0 %s >> Results/results.dat & ' % test_duration)
     call("sudo docker run --rm -it progrium/stress --cpu 20 --timeout %ss" % test_duration,shell=True)
 
-    time.sleep(interval_duration)
-    print "CPU ATK 1 1 0"
-    #CPU ATK, with cgroups at 50%
-    h1.cmd('sudo bash Measurement/meas.sh 1 1 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm %s -it progrium/stress --cpu 20 --timeout %ss" % (cgroup_options,test_duration),shell=True)
 
-    time.sleep(interval_duration)
-    print "MEM ATK 2 0 0"
-    #MEM ATK, no cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 2 0 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm -it progrium/stress --vm 4 --vm-bytes 256M --timeout %ss" % test_duration,shell=True)
-
-    time.sleep(interval_duration)
-    print "MEM ATK 2 1 0"
-    #MEM ATK, with cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 2 1 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm %s -it progrium/stress --vm 4 --vm-bytes 256M --timeout %ss" % (cgroup_options,test_duration),shell=True)
-
-    time.sleep(interval_duration)
-    print "HD ATK 3 0 0"
-    #HDD ATK, no cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 3 0 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm -it progrium/stress --hdd 10 --hdd-bytes 1048576 --timeout %ss" % test_duration,shell=True)
-
-    time.sleep(interval_duration)
-    print "HD ATK 3 1 0"
-    #HDD ATK, with cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 3 1 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm %s -it progrium/stress --hdd 10 --hdd-bytes 1048576 --timeout %ss" % (cgroup_options,test_duration),shell=True)
-
-    time.sleep(interval_duration)
-    print "NET ATK 4 0 0"
-    #NET IO ATK, no cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 4 0 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm -it progrium/stress --io 10 --timeout %ss" % test_duration,shell=True)
-
-    time.sleep(interval_duration)
-    print "NET ATK 4 1 0"
-    #NET IO ATK, no cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 4 1 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm %s -it progrium/stress --io 10 --timeout %ss" % (cgroup_options,test_duration), shell=True)
     time.sleep(interval_duration)
 
     
