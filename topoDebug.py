@@ -48,8 +48,7 @@ def tfTopo():
     h1 = net.addHost('h1', ip='10.0.0.1', mac='00:00:00:00:00:01')
     h2 = net.addHost('h2', ip='10.0.0.2', mac='00:00:00:00:00:02')
 
-    #p1 = net.addHost('p1', ip='10.0.1.1', mac='00:00:00:00:01:01', cls=Docker, dimage='gmiotto/click',mem_limit=1024*1024*1024, cpu_shares=1024, cpu_quota=pop_cpu_percentage*100,cpu_period=10000,device_write_bps='/dev/sda:512mb',device_write_iops='/dev/sda:1000')
-    p1 = net.addHost('p1', ip='10.0.1.1', mac='00:00:00:00:01:01', cls=Docker, dimage='gmiotto/click')
+    p1 = net.addHost('p1', ip='10.0.1.1', mac='00:00:00:00:01:01', cls=Docker, dimage='gmiotto/click',mem_limit=1024*1024*1024, cpu_shares=1024, cpu_quota=pop_cpu_percentage*100,cpu_period=10000,device_write_bps='/dev/sda:512mb',device_write_iops='/dev/sda:1000')
     #p2 = net.addHost('p2', ip='10.0.1.2', mac='00:00:00:00:01:02', cls=Docker, dimage='progrium/stress',mem_limit=1024*1024*10, cpu_quota=pop_cpu_percentage*100,cpu_period=10000)
 
     #Switches
@@ -75,24 +74,15 @@ def tfTopo():
 
     for host in net.hosts:
         if "p1" in host.name:
-            call("sudo bash Click/runFirewall.sh %s Click/firewall3.click " % host.name,shell=True)
+            call("sudo bash Click/runClickFunction.sh %s Click/DPI.click " % host.name,shell=True)
 
-    test_duration = 30
+    test_duration = 20
     interval_duration = 5
     cgroup_options = "--cpu-quota=5000 --cpu-period=10000 --memory='1073741824' --device-write-bps='/dev/sda:512mb' --device-write-iops='/dev/sda:1000' --device-read-bps='/dev/sda:512mb' --device-read-iops='/dev/sda:1000' --memory-swappiness='0' --shm-size='0'"
     h2.cmd('iperf3 -s &')
 
-    time.sleep(interval_duration)
-    print "CPU ATK 1 0 0"
-    #CPU ATK, no cgroups
-    h1.cmd('sudo bash Measurement/meas.sh 1 0 0 %s >> Results/results.dat & ' % test_duration)
-    call("sudo docker run --rm -it progrium/stress --cpu 20 --timeout %ss" % test_duration,shell=True)
-
-
-    time.sleep(interval_duration)
-
     
-    #CLI(net)
+    CLI(net)
     net.stop()
 
 if __name__ == '__main__':

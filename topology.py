@@ -64,9 +64,9 @@ def tfTopo():
     net.addLink(h2,s1)
 
     net.start()
-    call("sudo ovs-ofctl add-flow s1 in_port=3,actions=output:1",shell=True)
-    call("sudo ovs-ofctl add-flow s1 in_port=2,actions=output:4",shell=True)
-    call("sudo ovs-ofctl add-flow s1 in_port=4,actions=output:3",shell=True)
+    call("sudo ovs-ofctl add-flow s1 in_port=4,actions=output:1",shell=True)
+    call("sudo ovs-ofctl add-flow s1 in_port=2,actions=output:3",shell=True)
+    call("sudo ovs-ofctl add-flow s1 in_port=3,actions=output:4",shell=True)
 
     for host in net.hosts:
         if "h" in host.name:
@@ -74,7 +74,7 @@ def tfTopo():
 
     for host in net.hosts:
         if "p1" in host.name:
-            call("sudo bash Click/runFirewall.sh %s Click/firewall3.click " % host.name,shell=True)
+            call("sudo bash Click/runClickFunction.sh %s Click/firewall.click " % host.name,shell=True)
 
     test_duration = 60
     interval_duration = 5
