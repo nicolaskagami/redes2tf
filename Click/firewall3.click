@@ -4,10 +4,12 @@
 // 'click-install conf/Print-pings.click'
 
 
-FromDevice(eth0, SNIFFER true, PROMISC true, BURST 8)	// read packets from device
+FromDevice(eth0, SNIFFER false, PROMISC true, BURST 8)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
-   -> IPFilter(
+   -> IPFilter( 
+	allow ip src 192.168.2.2,
+	allow ip dst 192.168.2.2,
 	drop all)
    -> queue :: ThreadSafeQueue(10000)
    pkt[1] -> queue

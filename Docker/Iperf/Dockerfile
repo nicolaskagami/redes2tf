@@ -5,10 +5,10 @@ RUN apt-get update && apt-get install -y \
 	inetutils-ping \
 	iproute2 \
 	net-tools \
+	iptables \
 	tcpdump \
-	iptables
+	iperf3
 
-ADD click ./click
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]

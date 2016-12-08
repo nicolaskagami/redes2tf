@@ -4,7 +4,7 @@
 // 'click-install conf/Print-pings.click'
 
 
-FromDevice($DEV-eth0, SNIFFER false, PROMISC true)	// read packets from device
+FromDevice(eth0, SNIFFER false, PROMISC true)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
    -> IPFilter( allow icmp,
@@ -18,5 +18,5 @@ FromDevice($DEV-eth0, SNIFFER false, PROMISC true)	// read packets from device
    -> queue :: ThreadSafeQueue(10000000)
    pkt[1] -> queue
    ck[1] -> queue
-   -> ToDevice($DEV-eth1, BURST 800000);
+   -> ToDevice(eth0, BURST 800000);
 

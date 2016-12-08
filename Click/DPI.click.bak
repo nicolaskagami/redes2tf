@@ -4,7 +4,7 @@
 // 'click-install conf/Print-pings.click'
 
 
-FromDevice($DEV-eth0, SNIFFER false, PROMISC true)	// read packets from device
+FromDevice($DEV-eth0, SNIFFER true, PROMISC true)	// read packets from device
    -> ip :: IPClassifier(-,-)
    -> queue :: ThreadSafeQueue(100)
    ip[0] -> queue

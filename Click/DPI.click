@@ -4,7 +4,7 @@
 // 'click-install conf/Print-pings.click'
 
 
-FromDevice($DEV-eth0, SNIFFER false, PROMISC true)	// read packets from device
+FromDevice($DEV-eth0, SNIFFER true, PROMISC true)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
    -> ip :: IPClassifier(dst tcp port 5202,icmp type 0, ip tos 235,tcp win 10000,-)
