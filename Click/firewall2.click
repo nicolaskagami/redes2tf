@@ -4,12 +4,22 @@
 // 'click-install conf/Print-pings.click'
 
 
-FromDevice(eth0, SNIFFER true, PROMISC true, BURST 8)	// read packets from device
+FromDevice(ethc, SNIFFER false, PROMISC true)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
-   -> IPFilter(
-	drop all)
-   -> queue :: ThreadSafeQueue(10000)
+   -> IPFilter( allow icmp,
+		 drop all)
+   -> queue :: ThreadSafeQueue(10000000)
    pkt[1] -> queue
    ck[1] -> queue
-   -> ToDevice(eth0, BURST 8);
+   -> ToDevice(eths, BURST 800000);
+
+FromDevice(eths, SNIFFER false, PROMISC true)	// read packets from device
+   -> pkt2 :: Classifier(12/0800, -)
+   -> ck2 :: CheckIPHeader(OFFSET 14)
+   -> IPFilter( allow icmp,
+		 drop all)
+   -> queue2 :: ThreadSafeQueue(10000000)
+   pkt2[1] -> queue2
+   ck2[1] -> queue2
+   -> ToDevice(ethc, BURST 800000);

@@ -1,22 +1,27 @@
-// You can run it at user level (as root) as
-// 'userlevel/click < conf/Print-pings.click'
-// or in the kernel with
-// 'click-install conf/Print-pings.click'
 
+FromDevice(eths, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
+   -> pkt2 :: Classifier(12/0800, -)
+   -> ck2 :: CheckIPHeader(OFFSET 14)
+   -> IPFilter( allow all)
+   -> ip2 :: IPClassifier(tcp,udp,-)
+   queue2 :: ThreadSafeQueue(8000)
+   ip2[0] -> SetTCPChecksum -> queue2
+   ip2[1] -> SetUDPChecksum -> queue2
+   ip2[2] -> SetTCPChecksum -> Discard
+   pkt2[1] -> queue2
+   ck2[1] -> queue2
+   -> ToDevice(ethc, BURST 32);
 
-FromDevice(eth0, SNIFFER false, PROMISC true)	// read packets from device
+FromDevice(ethc, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
-   -> IPFilter( allow icmp,
-		 allow tcp && dst port 8000,	
-		 allow tcp && dst port 5001,	
-		 allow udp && dst port 5201,
-		 allow tcp && dst port 5201,
-		 allow udp && src port 5201,
-		 allow tcp && src port 5201,
-		 drop all)
-   -> queue :: ThreadSafeQueue(10000000)
+   -> IPFilter( allow all)
+   -> ip :: IPClassifier(tcp,udp,-)
+   queue :: ThreadSafeQueue(8000)
+   ip[0] -> SetTCPChecksum -> queue
+   ip[1] -> SetUDPChecksum -> queue
+   ip[2] -> SetTCPChecksum -> Discard
    pkt[1] -> queue
    ck[1] -> queue
-   -> ToDevice(eth0, BURST 800000);
+   -> ToDevice(eths, BURST 32);
 
