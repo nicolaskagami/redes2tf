@@ -7,12 +7,12 @@ FromDevice(eths, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read pa
    queue2 :: ThreadSafeQueue(8000)
    ip2[0] -> SetTCPChecksum -> queue2
    ip2[1] -> SetUDPChecksum -> queue2
-   ip2[2] -> SetTCPChecksum -> Discard
+   ip2[2] -> queue2
    pkt2[1] -> queue2
    ck2[1] -> queue2
-   -> ToDevice(ethc, BURST 32);
+   -> ToDevice(eth0, BURST 32);
 
-FromDevice(ethc, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
+FromDevice(eth0, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
    -> IPFilter( allow all)
@@ -20,7 +20,7 @@ FromDevice(ethc, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read pa
    queue :: ThreadSafeQueue(8000)
    ip[0] -> SetTCPChecksum -> queue
    ip[1] -> SetUDPChecksum -> queue
-   ip[2] -> SetTCPChecksum -> Discard
+   ip[2] -> queue
    pkt[1] -> queue
    ck[1] -> queue
    -> ToDevice(eths, BURST 32);

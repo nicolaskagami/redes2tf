@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
 	inetutils-ping \
 	iproute2 \
 	net-tools \
-	tcpdump \
+    ethtool \
 	iptables
 
 ADD click ./click

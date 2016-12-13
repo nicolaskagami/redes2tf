@@ -1,0 +1,1 @@
+docker network create --driver macvlan --gateway=172.16.0.10 --subnet 172.16.0.0/24 macvlanb

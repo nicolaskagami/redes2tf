@@ -1,37 +1,26 @@
 #!/bin/bash
 #1st ARG: ISOLATION TECHNOLOGY
-#2nd ARG: VIRTUALIZATION TECHNOLOGY
-#3rd ARG: VNF
 
 ISOLATION=$1
-VIRTECH=$2
-VNF=$3
 
-if [ "$VIRTECH" -eq "0" ]
-then
-    echo "Docker"
-else
-    echo "LXD"
-fi
-if [ "$ISOLATION" -eq "0" ]
-then
-    echo "NO CGROUPS"
-else
-    echo "CGROUPS"
-fi
-if [ "$VNF" -eq "2" ]
-then
-    echo "Setting up NAT"
-else
-    echo "Setting up DPI/Firewall"
-fi
+case "$ISOLATION" in
+    "0") #Nothing
+        ;;
+    "1") #CGROUPS only
+        ;;
+    "2") #CGROUPS and SELinux
+        ;;
+    "2") #CGROUPS and AppArmor
+        ;;
+esac
 docker kill click
 docker kill iperfServer
 docker kill iperfClient
 ./clean.sh
+
 docker run -it --cpuset-cpus="4" --privileged -d --network=none --name iperfServer iperf
 docker run -it --cpuset-cpus="1-3" --privileged  -d --network=none --name click click
-docker run -it --cpuset-cpus="5" --privileged -d --network=none --name iperfClient iperf
+docker run -it --cpuset-cpus="5" --privileged --cap-add=NET_ADMIN -d --network=none --name iperfClient iperf
 
 VETH0_NAME="veth0"
 VETH1_NAME="veth1"
@@ -47,3 +36,5 @@ ethtool -K $VETH1_NAME tso off
 docker exec -d iperfServer ip route add default via 172.16.0.2 dev eths
 docker exec -d iperfServer arp -i eths -s 172.16.0.2 10:00:00:00:00:02
 #docker exec -d click ip link set dev eth0 address $MAIN_MAC 
+
+docker exec -d iperfServer iperf3 -s

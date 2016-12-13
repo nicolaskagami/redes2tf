@@ -1,0 +1,1 @@
+docker network create --driver overlay -o --gateway=172.16.0.12 --subnet=172.16.0.0/24 -o "com.docker.network.driver.mtu"="9000" overlay 
