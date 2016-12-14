@@ -5,22 +5,35 @@ ISOLATION=$1
 
 case "$ISOLATION" in
     "0") #Nothing
+        ISOLATION_PARAM=" \
+            --cpu-quota=14000 \
+            --cpu-period=10000 \
+            --memory=1073741824 "
         ;;
     "1") #CGROUPS only
+        ISOLATION_PARAM=" \
+            --cpu-quota=14000 \
+            --cpu-period=10000 \
+            --memory=1073741824 "
         ;;
-    "2") #CGROUPS and SELinux
+    "2") #AppArmor
+        ISOLATION_PARAM="--security-opt apparmor=docker-default \
+            --cpu-quota=14000 \
+            --cpu-period=10000 \
+            --memory=1073741824 "
         ;;
-    "2") #CGROUPS and AppArmor
+    "3") #CGROUPS and AppArmor
+        ISOLATION_PARAM="--security-opt apparmor=docker-default \
+            --cpu-quota=14000 \
+            --cpu-period=10000 \
+            --memory=1073741824 "
         ;;
 esac
-docker kill click
-docker kill iperfServer
-docker kill iperfClient
 ./clean.sh
 
-docker run -it --cpuset-cpus="4" --privileged -d --network=none --name iperfServer iperf
-docker run -it --cpuset-cpus="1-3" --privileged  -d --network=none --name click click
-docker run -it --cpuset-cpus="5" --privileged --cap-add=NET_ADMIN -d --network=none --name iperfClient iperf
+docker run -it --cpuset-cpus="2" --privileged $ISOLATION_PARAM -d --network=none --name iperfServer iperf
+docker run -it --cpuset-cpus="0-1" --privileged $ISOLATION_PARAM -d --network=none --name click click
+docker run -it --cpuset-cpus="3" --privileged $ISOLATION_PARAM -d --network=none --name iperfClient iperf
 
 VETH0_NAME="veth0"
 VETH1_NAME="veth1"
@@ -35,6 +48,7 @@ ethtool -K $VETH0_NAME tso off
 ethtool -K $VETH1_NAME tso off
 docker exec -d iperfServer ip route add default via 172.16.0.2 dev eths
 docker exec -d iperfServer arp -i eths -s 172.16.0.2 10:00:00:00:00:02
+docker exec -d iperfServer arp -i eths -s 172.16.0.3 10:00:00:00:00:02
 #docker exec -d click ip link set dev eth0 address $MAIN_MAC 
 
 docker exec -d iperfServer iperf3 -s

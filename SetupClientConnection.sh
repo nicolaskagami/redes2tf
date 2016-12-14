@@ -1,9 +1,7 @@
 #!/bin/bash
-#1st ARG: VNF
-#2nd ARG: INTERFACE
+#1st ARG: INTERFACE
 
-VNF=$1
-INTERFACE=$2
+INTERFACE=$1
 
 function getIface()
 {
@@ -11,12 +9,6 @@ function getIface()
    IFACE=$(ip a | grep "^$IFACE_PAIR:" | cut -d ' ' -f2 | cut -d '@' -f1 | cut -d ':' -f1)
 }
 
-if [ "$VNF" -eq "2" ]
-then
-    echo "Setting connection through NAT"
-else
-    echo "Setting normal connection"
-fi
 case "$INTERFACE" in
     "0") 
         echo "Setting Up Veth Double"
@@ -25,8 +17,8 @@ case "$INTERFACE" in
 
         docker network disconnect none click
         docker network disconnect none iperfClient
-        docker network connect mybridge click
-        docker network connect mybridge iperfClient
+        docker network connect mybridge --ip 172.16.0.2 click
+        docker network connect mybridge --ip 172.16.0.3 iperfClient
 
         getIface click
         echo $IFACE
@@ -52,16 +44,16 @@ case "$INTERFACE" in
         ethtool -K $VETH3_NAME tso off
         ethtool -K $VETH4_NAME tso off
         pipework $VETH3_NAME -i eth0 click 172.16.0.1/24 $VETH3_MAC
-        pipework $VETH4_NAME -i eth0 iperfClient 172.16.0.2/24 $VETH4_MAC
+        pipework $VETH4_NAME -i eth0 iperfClient 172.16.0.3/24 $VETH4_MAC
         docker exec -d iperfClient ip route add default via 172.16.0.1 dev eth0
         docker exec -d iperfClient arp -i eth0 -s 172.16.0.1 10:00:00:00:00:01 
         ;;
     "2") 
-        echo "Setting Up Macvlan Private"
+        echo "Setting Up Macvlan Bridge"
         docker network disconnect none click
         docker network disconnect none iperfClient
-        docker network connect macvlanb click
-        docker network connect macvlanb iperfClient
+        docker network connect macvlanb --ip 172.16.0.2 click
+        docker network connect macvlanb --ip 172.16.0.3 iperfClient
 
         getIface click
         echo $IFACE
@@ -75,19 +67,5 @@ case "$INTERFACE" in
         docker exec -d iperfClient ip link set dev eth0 address 10:00:00:00:00:02 mtu 9000
         docker exec -d iperfClient arp -i eth0 -s 172.16.0.1 10:00:00:00:00:01 
         ;;
-    "3") 
-        echo "Setting Up Macvlan Bridge"
-        ;;
 esac
 
-case "$VNF" in
-    "0") #Firewall
-        FUNCTION="Click/firewall.click"
-        ;;
-    "1") #DPI
-        FUNCTION="Click/DPI.click"
-        ;;
-    "2") #NAT
-        ;;
-esac
-./runClickFunction.sh $FUNCTION

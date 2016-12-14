@@ -4,35 +4,57 @@
 // 'click-install conf/Print-pings.click'
 
 
-FromDevice(ethc, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
+FromDevice(eth0, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
-   -> ip :: IPClassifier(dst tcp port 5201,src tcp port 5201, udp,icmp type 0, ip tos 235,tcp win 10000,-)
+   -> ip :: IPClassifier(
+                        icmp type 0,
+                        ip tos 235,
+                        tcp win 10000,
+                        dst tcp port 5201, 
+                        src tcp port 5201, 
+                        dst udp port 5201,
+                        src udp port 5201,
+                        udp,
+                        -)
    queue :: ThreadSafeQueue(1000000)
-   ip[0] -> SetTCPChecksum -> queue
-   ip[1] -> SetTCPChecksum -> queue
-   ip[2] -> SetUDPChecksum -> queue
-   ip[3] -> queue
-   ip[4] -> Discard 
-   ip[5] -> queue
-   ip[6] -> queue
+   ip[0] -> queue
+   ip[1] -> Discard 
+   ip[2] -> queue
+   ip[3] -> SetTCPChecksum -> queue
+   ip[4] -> SetTCPChecksum -> queue
+   ip[5] -> SetUDPChecksum -> queue
+   ip[6] -> SetUDPChecksum -> queue
+   ip[7] -> SetUDPChecksum -> queue
+   ip[8] -> queue
 
 
    pkt[1] -> queue
-   -> ToDevice(eths, BURST 8);
+   queue -> ToDevice(eths, BURST 32);
 
 FromDevice(eths, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt2 :: Classifier(12/0800, -)
    -> ck2 :: CheckIPHeader(OFFSET 14)
-   -> ip2 :: IPClassifier(dst tcp port 5201,src tcp port 5201, udp,icmp type 0, ip tos 235,tcp win 10000,-)
+   -> ip2 :: IPClassifier(
+                        icmp type 0,
+                        ip tos 235,
+                        tcp win 10000,
+                        dst tcp port 5201, 
+                        src tcp port 5201, 
+                        dst udp port 5201,
+                        src udp port 5201,
+                        udp,
+                        -)
    queue2 :: ThreadSafeQueue(1000000)
-   ip2[0] -> SetTCPChecksum -> queue2
-   ip2[1] -> SetTCPChecksum -> queue2
-   ip2[2] -> SetUDPChecksum -> queue2
-   ip2[3] -> queue2
-   ip2[4] -> Discard
-   ip2[5] -> queue
-   ip2[6] -> queue
+   ip2[0] -> queue2
+   ip2[1] -> Discard
+   ip2[2] -> queue2
+   ip2[3] -> SetTCPChecksum -> queue2
+   ip2[4] -> SetTCPChecksum -> queue2
+   ip2[5] -> SetUDPChecksum -> queue2
+   ip2[6] -> SetUDPChecksum -> queue2
+   ip2[7] -> SetUDPChecksum -> queue2
+   ip2[8] -> queue2
 
-   pkt2[1] -> queue2
-   -> ToDevice(ethc, BURST 8);
+   pkt2[1] -> queue
+   queue2 -> ToDevice(eth0, BURST 32);

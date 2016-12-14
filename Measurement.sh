@@ -1,4 +1,4 @@
 #!/bin/bash
 #1st ARG: Duration
-DURATION=$1
-echo "Running iperf tcp, iperf udp and ping for $DURATION sec"
+docker cp Measurement/meas.sh iperfClient:/
+docker exec iperfClient /meas.sh $1

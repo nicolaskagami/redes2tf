@@ -1,38 +1,32 @@
 #!/bin/bash
-#Setup Isolation: SELinux or APParmor
-ISOLATION_FILE=.isolation_file
 DURATION=30
 ISOLATION_NUM=4
 VNF_NUM=3
 ANOMALY_NUM=5
-INTERFACE_NUM=4
-ITERATIONS=1
-if [ -f $ISOLATION_FILE ]
-then
-    ISOLATION=$(cat $ISOLATION_FILE)
-else
-    ISOLATION=0
-fi
+INTERFACE_NUM=3
+ITERATIONS=6
+
+ISOLATION=0
 while [ $ISOLATION -lt $ISOLATION_NUM ]
 do
-    ./SetupIsolation.sh  $ISOLATION
-    ./SetupContainers.sh $ISOLATION 
     INTERFACE=0
     while [ $INTERFACE -lt $INTERFACE_NUM ]
     do
+        ./SetupContainers.sh $ISOLATION 
+        ./SetupClientConnection.sh $INTERFACE
         VNF=0
         while [ $VNF -lt $VNF_NUM ]
         do
-            ./SetupClientConnection.sh $VNF $INTERFACE
+            ./SetupVNF.sh $VNF
             ANOMALY=0
             while [ $ANOMALY -lt $ANOMALY_NUM ]
             do
                 i=0
                 while [ $i -lt $ITERATIONS ]
                 do
-                    ./Measurement.sh $DURATION
-                    sleep 1
-                    ./Anomaly.sh $ANOMALY
+                    ./Anomaly.sh $ANOMALY $ISOLATION $DURATION
+                    RESULT_LINE=$(./Measurement.sh $DURATION)
+                    echo $ISOLATION $INTERFACE $VNF $ANOMALY $RESULT_LINE >> Results.txt
                     let i=i+1
                 done
                 let ANOMALY=ANOMALY+1
