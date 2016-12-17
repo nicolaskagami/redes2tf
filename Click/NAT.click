@@ -9,11 +9,19 @@ iprwp :: IPRewriterPatterns(
 FromDevice(eths, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt2 :: Classifier(12/0800, -)
    -> ck2 :: CheckIPHeader(OFFSET 14)
-   -> tcp2 :: IPClassifier(tcp,-)
-   tcp2[0] -> iprw2 :: IPRewriter(
+   -> IPFilter( 
+                allow tcp,
+                allow udp,
+                allow icmp,
+                drop all)
+   -> tcp2 :: IPClassifier(tcp,udp,icmp,-)
+   iprw2 :: IPRewriter(
                        pattern NATin 0 1)
+   tcp2[0] -> iprw2
+   tcp2[1] -> iprw2
    ip2 :: IPClassifier(tcp,udp,icmp,-)
-   tcp2[1] -> ip2
+   tcp2[2] -> ip2
+   tcp2[3] -> ip2
    iprw2[1] -> ip2
    iprw2[0] -> ip2
    queue2 :: ThreadSafeQueue(8000)
@@ -28,13 +36,23 @@ FromDevice(eths, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read pa
 FromDevice(eth0, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
-   -> tcp :: IPClassifier(tcp,-)
-   tcp[0] -> iprw :: IPRewriter(
+   -> IPFilter( 
+                allow tcp,
+                allow udp,
+                allow icmp,
+                drop all)
+   -> tcp :: IPClassifier(tcp,udp,icmp,-)
+   iprw :: IPRewriter(
                        pattern NATex 0 1)
+   tcp[0] -> iprw
+   tcp[1] -> iprw
    ip :: IPClassifier(tcp,udp,icmp,-)
-   tcp[1] -> ip
-   iprw[1] -> ip
+   tcp[2] -> icmpnat :: ICMPPingRewriter (pattern NATex 1 1) 
+   icmpnat[0]-> ip
+   icmpnat[1]-> ip
+   tcp[3] -> ip
    iprw[0] -> ip
+   iprw[1] -> ip
    queue :: ThreadSafeQueue(8000)
    ip[0] -> SetTCPChecksum -> queue
    ip[1] -> SetUDPChecksum -> queue

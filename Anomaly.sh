@@ -54,7 +54,7 @@ case "$ANOMALY" in
         ;;
     "3") 
         echo "I/O Stress"
-        docker run -d $ISOLATION_PARAM -it progrium/stress --io 50 --timeout $DURATION >/dev/null 
+        docker run -d $ISOLATION_PARAM -it progrium/stress --io 3 --timeout $DURATION >/dev/null 
         ;;
     "4") 
         echo "Disk Stress"

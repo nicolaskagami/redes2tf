@@ -31,9 +31,9 @@ case "$ISOLATION" in
 esac
 ./clean.sh
 
-docker run -it --cpuset-cpus="2" --privileged $ISOLATION_PARAM -d --network=none --name iperfServer iperf
-docker run -it --cpuset-cpus="0-1" --privileged $ISOLATION_PARAM -d --network=none --name click click
-docker run -it --cpuset-cpus="3" --privileged $ISOLATION_PARAM -d --network=none --name iperfClient iperf
+docker run -it --cpuset-cpus="1" --privileged $ISOLATION_PARAM -d --network=none --name iperfServer iperf
+docker run -it --cpuset-cpus="0" --privileged $ISOLATION_PARAM -d --network=none --name click click
+docker run -it --cpuset-cpus="2" --privileged $ISOLATION_PARAM -d --network=none --name iperfClient iperf
 
 VETH0_NAME="veth0"
 VETH1_NAME="veth1"

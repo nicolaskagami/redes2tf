@@ -7,6 +7,11 @@
 FromDevice(eth0, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt :: Classifier(12/0800, -)
    -> ck :: CheckIPHeader(OFFSET 14)
+   -> IPFilter( 
+                allow tcp,
+                allow udp,
+                allow icmp,
+                drop all)
    -> ip :: IPClassifier(
                         icmp type 0,
                         ip tos 235,
@@ -35,6 +40,11 @@ FromDevice(eth0, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read pa
 FromDevice(eths, SNIFFER false, PROMISC true, BURST 32, SNAPLEN 9216)	// read packets from device
    -> pkt2 :: Classifier(12/0800, -)
    -> ck2 :: CheckIPHeader(OFFSET 14)
+   -> IPFilter( 
+                allow tcp,
+                allow udp,
+                allow icmp,
+                drop all)
    -> ip2 :: IPClassifier(
                         icmp type 0,
                         ip tos 235,
